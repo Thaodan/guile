@@ -17,6 +17,7 @@ BuildRequires: libffi-devel
 BuildRequires: pkgconfig(bdw-gc)
 BuildRequires: make
 BuildRequires: flex
+BuildRequires: git
 Requires: coreutils
 
 %description
