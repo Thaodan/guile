@@ -1,7 +1,7 @@
 Summary: A GNU implementation of Scheme for application extensibility
 Name: guile
-%define mver 3.0
-Version: 3.0.7
+%define mver 2.2
+Version: 2.2.7
 Release: 1
 Source: ftp://ftp.gnu.org/pub/gnu/guile/guile-%{version}.tar.xz
 URL: http://www.gnu.org/software/guile/
@@ -103,7 +103,6 @@ fi
 %{_datadir}/guile/%{mver}/language
 %{_datadir}/guile/%{mver}/oop
 %{_datadir}/guile/%{mver}/rnrs
-%{_datadir}/guile/%{mver}/scheme
 %{_datadir}/guile/%{mver}/scripts
 %{_datadir}/guile/%{mver}/srfi
 %{_datadir}/guile/%{mver}/sxml
