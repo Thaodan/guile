@@ -67,32 +67,11 @@ rm -f ${RPM_BUILD_ROOT}%{_infodir}/dir
 # Our gdb doesn't support guile yet
 rm -f ${RPM_BUILD_ROOT}%{_libdir}/libguile*gdb.scm
 
-# Compress large documentation
-bzip2 NEWS
-
 for i in $RPM_BUILD_ROOT%{_infodir}/goops.info; do
     iconv -f iso8859-1 -t utf-8 < $i > $i.utf8 && mv -f ${i}{.utf8,}
 done
 
 touch $RPM_BUILD_ROOT%{_datadir}/guile/site/%{mver}/slibcat
-
-# Create symlinks for compatibility
-ln -s guile $RPM_BUILD_ROOT%{_bindir}/guile2
-ln -s %{_mandir}/man1/guile.1.gz $RPM_BUILD_ROOT%{_mandir}/man1/guile2.1.gz
-ln -s guile-tools $RPM_BUILD_ROOT%{_bindir}/guile2-tools
-
-# Adjust mtimes so they are all identical on all architectures.
-# When guile.x86_64 and guile.i686 are installed at the same time on an x86_64 system,
-# the *.scm files' timestamps change, as they normally reside in /usr/share/guile/.
-# Their corresponding compiled *.go file go to /usr/lib64/, or /usr/lib/, depending on the arch.
-# The mismatch in timestamps between *.scm and *.go files makes guile to compile itself
-# everytime it's run. The following code adjusts the files so that their timestamps are the same
-# for every file, but unique between builds.
-# See https://bugzilla.redhat.com/show_bug.cgi?id=1208760.
-find $RPM_BUILD_ROOT%{_datadir} -name '*.scm' -exec touch -r "%{_specdir}/guile.spec" '{}' \;
-find $RPM_BUILD_ROOT%{_libdir} -name '*.go' -exec touch -r "%{_specdir}/guile.spec" '{}' \;
-
-%ldconfig_scriptlets
 
 %triggerin -- slib >= 3b4-1
 rm -f %{_datadir}/guile/site/%{mver}/slibcat
@@ -111,21 +90,20 @@ fi
 
 %files
 %license COPYING COPYING.LESSER LICENSE
-%doc AUTHORS HACKING NEWS.bz2 README THANKS
-%{_bindir}/guile2
-%{_bindir}/guile2-tools
-%{_bindir}/guild
 %{_bindir}/guile
+%{_bindir}/guile-config
+%{_bindir}/guile-snarf
 %{_bindir}/guile-tools
+%{_bindir}/guild
 %{_libdir}/libguile*.so.*
-%{_libdir}/libguilereadline-*.so
-%{_libdir}/guile
+%{_libdir}/guile/%{mver}
 %dir %{_datadir}/guile
 %dir %{_datadir}/guile/%{mver}
 %{_datadir}/guile/%{mver}/ice-9
 %{_datadir}/guile/%{mver}/language
 %{_datadir}/guile/%{mver}/oop
 %{_datadir}/guile/%{mver}/rnrs
+%{_datadir}/guile/%{mver}/scheme
 %{_datadir}/guile/%{mver}/scripts
 %{_datadir}/guile/%{mver}/srfi
 %{_datadir}/guile/%{mver}/sxml
@@ -139,12 +117,12 @@ fi
 %ghost %{_datadir}/guile/site/%{mver}/slibcat
 %{_infodir}/*
 %{_mandir}/man1/guile.1*
-%{_mandir}/man1/guile2.1*
 
 %files devel
+%doc AUTHORS HACKING NEWS README THANKS
 %{_bindir}/guile-config
 %{_bindir}/guile-snarf
 %{_datadir}/aclocal/*
 %{_libdir}/libguile-%{mver}.so
 %{_libdir}/pkgconfig/*.pc
-%{_includedir}/guile
+%{_includedir}/guile/%{mver}
