@@ -1,7 +1,23 @@
+%bcond_with doc
+
+%global subdirs                     \\\
+	lib					            \\\
+	meta					        \\\
+	libguile				        \\\
+	bootstrap				        \\\
+	module					        \\\
+	guile-readline				    \\\
+	examples				        \\\
+	emacs					        \\\
+	test-suite				        \\\
+	benchmark-suite				    \\\
+	gc-benchmarks				    \\\
+	am %{?with_doc: doc}
+
 Summary: A GNU implementation of Scheme for application extensibility
 Name: guile
 %define mver 2.2
-Version: 2.2.7
+Version:    2.2.7
 Release: 1
 Source: ftp://ftp.gnu.org/pub/gnu/guile/guile-%{version}.tar.xz
 URL: http://www.gnu.org/software/guile/
@@ -18,6 +34,7 @@ BuildRequires: pkgconfig(bdw-gc)
 BuildRequires: make
 BuildRequires: flex
 BuildRequires: git
+%{?with_doc:BuildRequires texinfo}
 Requires: coreutils
 
 %description
@@ -55,10 +72,11 @@ autoreconf -fiv
 sed -i 's|" $sys_lib_dlsearch_path "|" $sys_lib_dlsearch_path %{_libdir} "|' \
     libtool
 
-%{make_build}
+%{make_build} SUBDIRS:=%{subdirs}
+#%{make_build} libguile/guile-procedures.txt
 
 %install
-%{make_install}
+%{__make} SUBDIRS:=%{subdirs} install DESTDIR=%{?buildroot} INSTALL="%{__install} -p"
 
 mkdir -p ${RPM_BUILD_ROOT}%{_datadir}/guile/site/%{mver}
 
@@ -110,13 +128,15 @@ fi
 %{_datadir}/guile/%{mver}/system
 %{_datadir}/guile/%{mver}/texinfo
 %{_datadir}/guile/%{mver}/web
-%{_datadir}/guile/%{mver}/guile-procedures.txt
 %{_datadir}/guile/%{mver}/*.scm
 %dir %{_datadir}/guile/site
 %dir %{_datadir}/guile/site/%{mver}
 %ghost %{_datadir}/guile/site/%{mver}/slibcat
+%if %{with doc}
 %{_infodir}/*
 %{_mandir}/man1/guile.1*
+%{_datadir}/guile/%{mver}/guile-procedures.txt
+%endif
 
 %files devel
 %doc AUTHORS HACKING NEWS README THANKS
