@@ -1,0 +1,11 @@
+diff -Nur guile-3.0.7/test-suite/standalone/Makefile.am new/test-suite/standalone/Makefile.am
+--- guile-3.0.7/test-suite/standalone/Makefile.am	2021-05-10 10:07:12.000000000 +0200
++++ new/test-suite/standalone/Makefile.am	2021-05-15 13:52:39.130407172 +0200
+@@ -298,7 +298,4 @@
+ check_SCRIPTS += test-stack-overflow
+ TESTS += test-stack-overflow
+ 
+-check_SCRIPTS += test-out-of-memory
+-TESTS += test-out-of-memory
+-
+ EXTRA_DIST += ${check_SCRIPTS}

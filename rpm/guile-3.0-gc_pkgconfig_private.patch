@@ -1,0 +1,11 @@
+--- a/meta/guile-3.0.pc.in	2020-01-07 12:00:08.392929733 +0100
++++ b/meta/guile-3.0.pc.in	2020-01-07 12:00:19.241097989 +0100
+@@ -22,7 +22,7 @@
+ Name: GNU Guile
+ Description: GNU's Ubiquitous Intelligent Language for Extension
+ Version: @GUILE_VERSION@
+-Libs: -L${libdir} -lguile-@GUILE_EFFECTIVE_VERSION@ @BDW_GC_LIBS@
++Libs: -L${libdir} -lguile-@GUILE_EFFECTIVE_VERSION@
+ Libs.private: @LIB_CLOCK_GETTIME@ @LIBGMP@ @LIBLTDL@ @LIBFFI_LIBS@	\
+   @LIBUNISTRING@ @GUILE_LIBS@ @LIBICONV@ @LIBINTL@ @LIBSOCKET@		\
+   @SERVENT_LIB@ @HOSTENT_LIB@ @GETADDRINFO_LIB@ @INET_NTOP_LIB@		\

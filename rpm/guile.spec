@@ -1,4 +1,23 @@
-%bcond_with doc
+#
+# spec file for package guile
+#
+# Copyright (c) 2021 SUSE LLC
+#
+# All modifications and additions to the file contributed by third parties
+# remain the property of their copyright owners, unless otherwise agreed
+# upon. The license for this file, and modifications and additions to the
+# file, is the same license as for the pristine package itself (unless the
+# license for the pristine package is not an Open Source License, in which
+# case the license is the MIT License). An "Open Source License" is a
+# license that conforms to the Open Source Definition (Version 1.9)
+# published by the Open Source Initiative.
+
+# Please submit bugfixes or comments via https://bugs.opensuse.org/
+#
+
+%bcond_without doc
+# FIXME: is needed during build guile-procedures.texi but is generated during doc
+
 
 %global subdirs                     \\\
 	lib					            \\\
@@ -14,135 +33,178 @@
 	gc-benchmarks				    \\\
 	am %{?with_doc: doc}
 
-Summary: A GNU implementation of Scheme for application extensibility
-Name: guile
-%define mver 2.2
-Version:    2.2.7
-Release: 1
-Source: ftp://ftp.gnu.org/pub/gnu/guile/guile-%{version}.tar.xz
-URL: http://www.gnu.org/software/guile/
-License: LGPLv3+
-BuildRequires: gcc
-BuildRequires: libtool
-BuildRequires: libtool-ltdl-devel
-BuildRequires: gmp-devel
-BuildRequires: readline-devel
-BuildRequires: gettext-devel
-BuildRequires: libunistring-devel
-BuildRequires: libffi-devel
-BuildRequires: pkgconfig(bdw-gc)
-BuildRequires: make
-BuildRequires: flex
-BuildRequires: git
-%{?with_doc:BuildRequires texinfo}
-Requires: coreutils
+
+# define the name used for versioning libs and directories.
+%define guilemaj    3
+%define guilemin    0
+%define guilevers   %{guilemaj}.%{guilemin}
+%define libgver     1
+%define gsuff       %{guilemaj}_%{guilemin}-%{libgver}
+Name:           guile
+Version:        %{guilevers}.8
+Release:        0
+Summary:        GNU's Ubiquitous Intelligent Language for Extension
+License:        GFDL-1.3-only AND GPL-3.0-or-later AND LGPL-3.0-or-later
+URL:            https://www.gnu.org/software/guile/
+Source0:        %{name}-%{version}.tar.xz
+Source3:        guile-rpmlintrc
+# Fix the resulting /usr/lib64/pkgconfig/guile-3.0.pc
+Patch0:         guile-3.0-gc_pkgconfig_private.patch
+# The out-of-memory test is flaky, so disable it
+Patch1:         disable-test-out-of-memory.patch
+Patch2:         gcc10-x86-disable-one-test.patch
+Patch3:         adjust-32bit-big-endian-build-flags.patch
+# do sequential build for reproducible .go files = https://issues.guix.gnu.org/issue/20272 - boo#1102408
+Patch4:         stage2-serialize.patch
+Patch5:         0001-Don-t-enable-tests-that-require-a-network-connection.patch
+BuildRequires:  gmp-devel
+BuildRequires:  libffi-devel
+BuildRequires:  libtool
+BuildRequires:  libunistring-devel
+BuildRequires:  pkgconfig
+BuildRequires:  readline-devel
+BuildRequires:  pkgconfig(bdw-gc)
+BuildRequires:  gperf
+BuildRequires:  flex
+# /usr/share/autoconf/Autom4te/FileUtils.pm: autopoint
+BuildRequires:  gettext-devel
+# dependencies that are present on openSUSE but are not pulled in for Sailfish OS
+BuildRequires: pkgconfig(libcrypt)
+
+%{?with_doc:BuildRequires: texinfo}
+Requires(pre):  fileutils
+Requires(pre):  sh-utils
 
 %description
-GUILE (GNU's Ubiquitous Intelligent Language for Extension) is a library
-implementation of the Scheme programming language, written in C.  GUILE
-provides a machine-independent execution platform that can be linked in
-as a library during the building of extensible programs.
+This is Guile, a portable, embeddable Scheme implementation written in
+C. Guile provides a machine independent execution platform that can be
+linked in as a library when building extensible programs.
 
-Install the guile package if you'd like to add extensibility to programs
-that you are developing.
+%package -n libguile-%{gsuff}
+Summary:        GNU's Ubiquitous Intelligent Language for Extension
+License:        GFDL-1.3-only AND GPL-3.0-or-later AND LGPL-3.0-or-later
+Requires:       %{name}-modules-%{guilemaj}_%{guilemin} >= %{version}
+
+%description -n libguile-%{gsuff}
+This is Guile, a portable, embeddable Scheme implementation written in
+C. Guile provides a machine independent execution platform that can be
+linked in as a library when building extensible programs. This package
+contains the shared libraries.
+
+%package modules-%{guilemaj}_%{guilemin}
+Summary:        GNU's Ubiquitous Intelligent Language for Extension
+License:        GFDL-1.3-only AND GPL-3.0-or-later AND LGPL-3.0-or-later
+
+%description modules-%{guilemaj}_%{guilemin}
+This is Guile, a portable, embeddable Scheme implementation written in
+C. Guile provides a machine independent execution platform that can be
+linked in as a library when building extensible programs. This package
+contains guile modules.
 
 %package devel
-Summary: Libraries and header files for the GUILE extensibility library
-Requires: guile%{?_isa} = %{version}-%{release} gmp-devel pkgconfig(bdw-gc)
-Requires: pkgconfig
+Summary:        GNU's Ubiquitous Intelligent Language for Extension
+License:        LGPL-2.1-or-later
+Requires:       gmp-devel
+# following Requires needed because /usr/bin/guile-config needs /usr/bin/guile
+Requires:       guile = %{version}
+Requires:       libffi-devel
+Requires:       libguile-%{gsuff} = %{version}
+Requires:       libunistring-devel
+Requires:       ncurses-devel
+Requires:       readline-devel
+Requires:       pkgconfig(bdw-gc)
 
 %description devel
-The guile-devel package includes the libraries, header files, etc.,
-that you'll need to develop applications that are linked with the
-GUILE extensibility library.
-
-You need to install the guile-devel package if you want to develop
-applications that will be linked to GUILE.  You'll also need to
-install the guile package.
+This is Guile, a portable, embeddable Scheme implementation written in
+C. Guile provides a machine independent execution platform that can be
+linked in as a library when building extensible programs.
 
 %prep
-%setup -q -n %name-%version/upstream
+%autosetup -p 1 -n %name-%version/upstream 
 
-%build
-autoreconf -fiv
+# remove broken prebuilt objects
+rm -r prebuilt/32-bit-big-endian
 
-%configure --disable-static --disable-error-on-warning
-
-# Remove RPATH
-sed -i 's|" $sys_lib_dlsearch_path "|" $sys_lib_dlsearch_path %{_libdir} "|' \
-    libtool
-
-%{make_build} SUBDIRS:=%{subdirs}
-#%{make_build} libguile/guile-procedures.txt
-
-%install
-%{__make} SUBDIRS:=%{subdirs} install DESTDIR=%{?buildroot} INSTALL="%{__install} -p"
-
-mkdir -p ${RPM_BUILD_ROOT}%{_datadir}/guile/site/%{mver}
-
-rm -f ${RPM_BUILD_ROOT}%{_libdir}/libguile*.la
-rm -f ${RPM_BUILD_ROOT}%{_infodir}/dir
-
-# Our gdb doesn't support guile yet
-rm -f ${RPM_BUILD_ROOT}%{_libdir}/libguile*gdb.scm
-
-for i in $RPM_BUILD_ROOT%{_infodir}/goops.info; do
-    iconv -f iso8859-1 -t utf-8 < $i > $i.utf8 && mv -f ${i}{.utf8,}
-done
-
-touch $RPM_BUILD_ROOT%{_datadir}/guile/site/%{mver}/slibcat
-
-%triggerin -- slib >= 3b4-1
-rm -f %{_datadir}/guile/site/%{mver}/slibcat
-export SCHEME_LIBRARY_PATH=%{_datadir}/slib/
-
-# Build SLIB catalog
-%{_bindir}/guile --fresh-auto-compile --no-auto-compile -c \
-    "(use-modules (ice-9 slib)) (require 'new-catalog)" &> /dev/null || \
-    rm -f %{_datadir}/guile/site/%{mver}/slibcat
-:
-
-%triggerun -- slib >= 3b4-1
-if [ "$2" = 0 ]; then
-    rm -f %{_datadir}/guile/site/%{mver}/slibcat
-fi
-
-%files
-%license COPYING COPYING.LESSER LICENSE
-%{_bindir}/guile
-%{_bindir}/guile-config
-%{_bindir}/guile-snarf
-%{_bindir}/guile-tools
-%{_bindir}/guild
-%{_libdir}/libguile*.so.*
-%{_libdir}/guile/%{mver}
-%dir %{_datadir}/guile
-%dir %{_datadir}/guile/%{mver}
-%{_datadir}/guile/%{mver}/ice-9
-%{_datadir}/guile/%{mver}/language
-%{_datadir}/guile/%{mver}/oop
-%{_datadir}/guile/%{mver}/rnrs
-%{_datadir}/guile/%{mver}/scripts
-%{_datadir}/guile/%{mver}/srfi
-%{_datadir}/guile/%{mver}/sxml
-%{_datadir}/guile/%{mver}/system
-%{_datadir}/guile/%{mver}/texinfo
-%{_datadir}/guile/%{mver}/web
-%{_datadir}/guile/%{mver}/*.scm
-%dir %{_datadir}/guile/site
-%dir %{_datadir}/guile/site/%{mver}
-%ghost %{_datadir}/guile/site/%{mver}/slibcat
-%if %{with doc}
-%{_infodir}/*
-%{_mandir}/man1/guile.1*
-%{_datadir}/guile/%{mver}/guile-procedures.txt
+%if 0%{?qemu_user_space_build}
+# QEMU ignores rlimit requests for setting RLIMIT_AS
+echo exit 77 > test-suite/standalone/test-stack-overflow
 %endif
 
+%build
+
+# Set tarball version for ./build-aux/git-version-gen
+echo %{version}|sed 's/\+.*//' > .tarball-version
+
+autoreconf -fi
+# FIXME: lto doesn't work right now
+%configure \
+  --disable-static \
+  --with-pic \
+  --enable-lto=no \
+  --with-threads \
+  --disable-silent-rules
+%make_build
+
+%check
+LD_LIBRARY_PATH="." \
+%make_build check
+
+%install
+# Workarund broken make_install argument that doesn't accept arguments :/
+# %%{make_install} SUBDIRS:=%%{subdirs}
+%{__make} install DESTDIR=%{?buildroot} INSTALL="%{__install} -p"
+
+mkdir -p %{buildroot}%{_datadir}/guile/site
+find %{buildroot} -type f -name "*.la" -delete -print
+# bug #874028
+mkdir -p %{buildroot}%{_datadir}/gdb/auto-load%{_libdir}
+mv %{buildroot}%{_libdir}/libguile*-gdb.scm %{buildroot}%{_datadir}/gdb/auto-load%{_libdir}/
+
+%pre
+# Remove obsolete files (< SuSE Linux 10.2)
+rm -f var/adm/SuSEconfig/md5%{_datadir}/guile/*/slibcat
+rm -f usr/share/guile/site/slibcat.SuSEconfig
+
+%post -n libguile-%{gsuff} -p /sbin/ldconfig
+%postun -n libguile-%{gsuff} -p /sbin/ldconfig
+
+%files
+%doc ABOUT-NLS AUTHORS ChangeLog GUILE-VERSION HACKING
+%doc NEWS README THANKS
+%{_bindir}/guile-tools
+%{_bindir}/guild
+%{_bindir}/guile
+%if %{with doc}
+%{_mandir}/man1/guile.1%{?ext_man}
+%endif
+
+%files -n libguile-%{gsuff}
+%license LICENSE COPYING*
+%{_libdir}/libguile-%{guilevers}.so.%{libgver}*
+
+%files modules-%{guilemaj}_%{guilemin}
+%{_libdir}/%{name}
+# Own usr/share/guile/site; side effect of not doing so is slib failing to install correctly.
+%{_datadir}/%{name}
+
 %files devel
-%doc AUTHORS HACKING NEWS README THANKS
-%{_bindir}/guile-config
 %{_bindir}/guile-snarf
-%{_datadir}/aclocal/*
-%{_libdir}/libguile-%{mver}.so
-%{_libdir}/pkgconfig/*.pc
-%{_includedir}/guile/%{mver}
+%{_bindir}/guile-config
+%dir %{_includedir}/%{name}
+%dir %{_includedir}/%{name}/%{guilevers}
+%{_includedir}/%{name}/%{guilevers}/*
+%{_datadir}/aclocal/guile.m4
+%if %{with doc}
+%{_infodir}/%{name}.info%{?ext_info}
+%{_infodir}/%{name}.info-[0-9]%{ext_info}
+%{_infodir}/%{name}.info-1[0-9]%{ext_info}
+%{_infodir}/r5rs.info%{?ext_info}
+%endif
+%{_libdir}/libguile-%{guilevers}.so
+%{_libdir}/pkgconfig/guile-%{guilevers}.pc
+# bug #874028
+%dir %{_datadir}/gdb
+%dir %{_datadir}/gdb/auto-load
+%dir %{_datadir}/gdb/auto-load%{_prefix}
+%dir %{_datadir}/gdb/auto-load/%{_libdir}
+%{_datadir}/gdb/auto-load/%{_libdir}/libguile*-gdb.scm

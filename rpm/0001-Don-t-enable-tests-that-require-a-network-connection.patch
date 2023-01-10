@@ -1,0 +1,41 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bj=C3=B6rn=20Bidar?= <bjorn.bidar@jolla.com>
+Date: Wed, 18 Jan 2023 23:51:43 +0200
+Subject: [PATCH] Don't enable tests that require a network connection
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Björn Bidar <bjorn.bidar@jolla.com>
+---
+ test-suite/Makefile.am | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/test-suite/Makefile.am b/test-suite/Makefile.am
+index 16fa2e952cf355597a5f46b8a21260e59f767299..82feedd404dbf250f4936f3c58b2fb4d89482927 100644
+--- a/test-suite/Makefile.am
++++ b/test-suite/Makefile.am
+@@ -22,7 +22,6 @@
+ SUBDIRS = standalone
+ 
+ SCM_TESTS = tests/00-initial-env.test		\
+-	    tests/00-repl-server.test		\
+ 	    tests/00-socket.test		\
+             tests/alist.test			\
+ 	    tests/and-let-star.test		\
+@@ -68,7 +67,6 @@ SCM_TESTS = tests/00-initial-env.test		\
+ 	    tests/guardians.test		\
+ 	    tests/hash.test			\
+ 	    tests/hooks.test			\
+-	    tests/i18n.test			\
+ 	    tests/iconv.test			\
+ 	    tests/import.test			\
+ 	    tests/interp.test			\
+@@ -168,7 +166,6 @@ SCM_TESTS = tests/00-initial-env.test		\
+ 	    tests/streams.test			\
+ 	    tests/strings.test			\
+ 	    tests/structs.test			\
+-	    tests/suspendable-ports.test	\
+ 	    tests/sxml.fold.test		\
+ 	    tests/sxml.match.test		\
+ 	    tests/sxml.simple.test		\
